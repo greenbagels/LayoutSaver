@@ -14,7 +14,7 @@ struct win_data
 {
     HWND window;
     std::wstring title;
-    RECT pos;
+    WINDOWPLACEMENT placement;
 };
 
 // List of userspace windows for resizing
@@ -135,9 +135,11 @@ BOOL InitInstance(HINSTANCE instance, LPCWSTR classname, LPCWSTR window_title, i
 //
 //  PURPOSE: Processes messages for the main window.
 //
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
+//  WM_SYSCOMMAND - Custom system control buttons
+//  WM_COMMAND    - process the application menu
+//  WM_PAINT      - Paint the main window
+//  WM_APP        - Handle user-defined events
+//  WM_DESTROY    - post a quit message and return
 //
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -208,11 +210,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         MessageBoxW(hWnd, (L"Restoring " + std::to_wstring(window_list.size()) + L" window positions.").c_str(), nullptr, MB_OK);
                         for (auto i : window_list)
                         {
-                            auto x = i.pos.left;
-                            auto y = i.pos.top;
-                            auto width = i.pos.right - x;
-                            auto height = i.pos.bottom - y;
-                            MoveWindow(i.window, x, y, width, height, TRUE);
+                            SetWindowPlacement(i.window, &i.placement);
                         }
                         return 0;
                     }
@@ -271,9 +269,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 BOOL CALLBACK EnumGetVisibleWindowPos(_In_ HWND hwnd, _In_ LPARAM userdata)
 {
     struct win_data data;
-    auto len = GetWindowTextLength(hwnd);
-    data.title.resize(len+1);
-    if (!(GetWindowTextW(hwnd, &data.title[0], len+1) && IsWindowVisible(hwnd)))
+    data.placement.length = sizeof(data.placement);
+    auto title_len = GetWindowTextLength(hwnd);
+    data.title.reserve(title_len+1);
+    // Windows desktops typically have a lot of hidden or titleless windows;
+    // to be safe, we're going to assume the user (by default) does NOT want
+    // us to touch those windows.
+    if (!(GetWindowTextW(hwnd, &data.title[0], title_len+1) && IsWindowVisible(hwnd)))
     {
         if (GetLastError())
         {
@@ -283,7 +285,7 @@ BOOL CALLBACK EnumGetVisibleWindowPos(_In_ HWND hwnd, _In_ LPARAM userdata)
         // Skip because empty title
         return TRUE;
     }
-    if (!GetWindowRect(hwnd, &data.pos))
+    if (!GetWindowPlacement(hwnd, &data.placement))
     {
         return FALSE;
     }
