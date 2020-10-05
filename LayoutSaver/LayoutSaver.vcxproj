@@ -152,11 +152,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="LayoutSaver.hpp" />
+    <ClInclude Include="config_window.hpp" />
+    <ClInclude Include="core.hpp" />
+    <ClInclude Include="main_window.hpp" />
     <ClInclude Include="Resource.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="LayoutSaver.cpp" />
+    <ClCompile Include="config_window.cpp" />
+    <ClCompile Include="core.cpp" />
+    <ClCompile Include="main_window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LayoutSaver.rc" />

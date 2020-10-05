@@ -12,6 +12,7 @@
 #define IDR_MAINFRAME                   128
 #define IDI_LS_SMALL                    131
 #define IDI_LS                          132
+#define ID_FILE_SETTINGS                32771
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -20,7 +21,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         32771
+#define _APS_NEXT_COMMAND_VALUE         32773
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
