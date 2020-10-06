@@ -18,8 +18,6 @@ area, and double clicking the icon there will restore the window.
 
 - The program has not been tested on older platforms, **but new issues are more than welcome**.
 
-- The project name and icons that I made in 5 minutes kinda suck :)
-
 # Copyright
 
 Unless noted elsewhere, the project's files are licensed under the GNU GPLv3. The easiest
