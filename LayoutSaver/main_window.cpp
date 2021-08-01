@@ -1,3 +1,6 @@
+// Use Unicode expansions of string function macros
+#define UNICODE
+
 #include "core.hpp"
 #include "main_window.hpp"
 #include <cassert>
@@ -24,7 +27,7 @@ LRESULT CALLBACK main_window_callback(HWND window, UINT message, WPARAM wParam, 
     std::wstring control_text(5, 'a');
     int status;
 
-    auto ptr_as_int = GetWindowLongPtrW(window, GWLP_USERDATA);
+    auto ptr_as_int = GetWindowLongPtr(window, GWLP_USERDATA);
     auto window_list = reinterpret_cast<std::vector<struct win_data>*>(ptr_as_int);
     // assert(window_list != nullptr);
     switch (message)
@@ -39,7 +42,7 @@ LRESULT CALLBACK main_window_callback(HWND window, UINT message, WPARAM wParam, 
                     break;
                 }
                 default:
-                DefWindowProcW(window, message, wParam, lParam);
+                DefWindowProc(window, message, wParam, lParam);
             }
             break;
         }
@@ -50,7 +53,7 @@ LRESULT CALLBACK main_window_callback(HWND window, UINT message, WPARAM wParam, 
             switch (HIWORD(wParam))
             {
                 case BN_CLICKED:
-                    status = GetWindowTextW((HWND)lParam, &control_text[0], 5);
+                    status = GetWindowText((HWND)lParam, &control_text[0], 5);
                     if (control_text[0] == L'S')
                     {
                         window_list->clear();
@@ -60,18 +63,18 @@ LRESULT CALLBACK main_window_callback(HWND window, UINT message, WPARAM wParam, 
                         {
                             std::wstring buf;
                             buf.resize(512);
-                            FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,
+                            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
                                            nullptr,
                                            GetLastError(),
                                            0,
                                            &buf[0],
                                            512,
                                            nullptr);
-                            MessageBoxW(window, buf.c_str(), nullptr, MB_OK);
+                            MessageBox(window, buf.c_str(), nullptr, MB_OK);
                         }
                         else
                         {
-                            MessageBoxW(window,
+                            MessageBox(window,
                                         (L"Successfully saved positions of " +
                                             std::to_wstring(window_list->size()) +
                                             L" windows.").c_str(),
@@ -84,7 +87,7 @@ LRESULT CALLBACK main_window_callback(HWND window, UINT message, WPARAM wParam, 
 
                     else if (control_text[0] == L'L')
                     {
-                        MessageBoxW(window,
+                        MessageBox(window,
                                     (L"Restoring " +
                                         std::to_wstring(window_list->size()) +
                                         L" window positions.").c_str(),
@@ -92,7 +95,11 @@ LRESULT CALLBACK main_window_callback(HWND window, UINT message, WPARAM wParam, 
                                      MB_OK);
                         for (auto i : *window_list)
                         {
-                            SetWindowPlacement(i.window, &i.placement);
+                            auto errcode = SetWindowPlacement(i.window, &i.placement);
+                            if (!errcode)
+                            {
+                                MessageBox(window, L"An error occurred while loading windows!", nullptr, MB_OK);
+                            }
                         }
                         return 0;
                     }
@@ -102,7 +109,7 @@ LRESULT CALLBACK main_window_callback(HWND window, UINT message, WPARAM wParam, 
             switch (LOWORD(wParam))
             {
                 case IDM_ABOUT:
-                    DialogBoxW(GetModuleHandleW(nullptr),
+                    DialogBox(GetModuleHandle(nullptr),
                                MAKEINTRESOURCE(IDD_ABOUTBOX),
                                window,
                                About);
@@ -159,7 +166,7 @@ int hide_to_notification_area(HWND window, UINT icon_uid, UINT icon_resource_id)
     icondata.uID = icon_uid;
     icondata.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
     icondata.uCallbackMessage = WM_APP;
-    icondata.hIcon = LoadIconW(GetModuleHandleW(nullptr), MAKEINTRESOURCE(icon_resource_id));
+    icondata.hIcon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(icon_resource_id));
     auto str = L"Double-click to restore LayoutSaver!";
     std::wmemset(icondata.szTip, '\0', sizeof(icondata.szTip) / sizeof(*str));
     std::wmemcpy(icondata.szTip, str, std::wcslen(str));
@@ -167,7 +174,7 @@ int hide_to_notification_area(HWND window, UINT icon_uid, UINT icon_resource_id)
     icondata.dwInfoFlags = NIIF_NONE;
     icondata.hBalloonIcon = nullptr;
     icondata.guidItem = { 0,0,0,{0,0,0,0,0,0,0,0} };
-    Shell_NotifyIconW(NIM_ADD, &icondata);
+    Shell_NotifyIcon(NIM_ADD, &icondata);
     ShowWindow(window, SW_HIDE);
     return 0;
 }
@@ -178,7 +185,7 @@ int restore_from_notification_area(HWND window, UINT icon_uid)
     icondata.cbSize = sizeof(NOTIFYICONDATAW);
     icondata.hWnd = window;
     icondata.uID = icon_uid;
-    Shell_NotifyIconW(NIM_DELETE, &icondata);
+    Shell_NotifyIcon(NIM_DELETE, &icondata);
     ShowWindow(window, SW_SHOW);
     return 0;
 }
